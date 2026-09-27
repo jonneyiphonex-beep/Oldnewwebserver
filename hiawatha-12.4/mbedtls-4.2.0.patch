@@ -1,0 +1,36 @@
+diff -ur mbedtls/CMakeLists.txt mbedtls-42/CMakeLists.txt
+--- mbedtls/CMakeLists.txt	2026-07-02 17:11:00.187384600 +0200
++++ mbedtls-42/CMakeLists.txt	2026-07-09 20:03:38.612668351 +0200
+@@ -18,7 +18,7 @@
+ 
+ # We specify a minimum requirement of 3.10.2, but for now use 3.5.1 here
+ # until our infrastructure catches up.
+-cmake_minimum_required(VERSION 3.5.1)
++cmake_minimum_required(VERSION 3.10)
+ 
+ include(CMakePackageConfigHelpers)
+ 
+diff -ur mbedtls/library/CMakeLists.txt mbedtls-42/library/CMakeLists.txt
+--- mbedtls/library/CMakeLists.txt	2026-07-02 17:11:00.201813700 +0200
++++ mbedtls-42/library/CMakeLists.txt	2026-07-09 20:05:19.830152524 +0200
+@@ -313,7 +313,7 @@
+                     DESTINATION ${CMAKE_INSTALL_LIBDIR}
+                     RENAME "libmbedcrypto.dylib"
+             )
+-        elseif(WIN32 AND NOT CYGWIN)
++        elseif(WIN32 OR CYGWIN)
+             add_custom_command(
+                 TARGET ${mbedtls_target} POST_BUILD
+                 COMMAND ${CMAKE_COMMAND} -E copy_if_different
+diff -ur mbedtls/tf-psa-crypto/CMakeLists.txt mbedtls-42/tf-psa-crypto/CMakeLists.txt
+--- mbedtls/tf-psa-crypto/CMakeLists.txt	2026-07-02 17:11:23.196724000 +0200
++++ mbedtls-42/tf-psa-crypto/CMakeLists.txt	2026-07-09 20:06:59.847631100 +0200
+@@ -18,7 +18,7 @@
+ 
+ # We specify a minimum requirement of 3.10.2, but for now use 3.5.1 here
+ # until our infrastructure catches up.
+-cmake_minimum_required(VERSION 3.5.1)
++cmake_minimum_required(VERSION 3.10)
+ 
+ include(CMakePackageConfigHelpers)
+ 

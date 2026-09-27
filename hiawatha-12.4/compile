@@ -1,0 +1,149 @@
+#!/bin/bash
+
+whiptail -v > /dev/null 2> /dev/null
+if [ $? != 0 ]; then
+	echo "This compile script requires whiptail."
+	exit;
+fi
+
+cd `dirname $0`
+version=`grep ^project CMakeLists.txt | cut -f3 -d' '`
+
+function custom_compile {
+	options=$(whiptail \
+		--backtitle "Hiawatha v${version}" \
+		--title "Select compiler options" \
+		--clear --notags \
+		--cancel-button "Exit" \
+		--checklist "" 0 0 0 \
+    	"+DENABLE_CACHE=ON"    "Enable internal cache support." ON \
+		"+DENABLE_HTTP2=ON"    "Enable HTTP/2 support in Hiawatha (requires TLS)." OFF \
+		"+DENABLE_MONITOR=ON"  "Enable support for the Hiawatha Monitor." OFF \
+		"+DENABLE_RPROXY=ON"   "Enable reverse proxy support." ON \
+		"+DENABLE_SANDBOX=ON"  "Enable OS sandbox." OFF \
+		"+DENABLE_TLS=ON"      "Enable TLS (mbed TLS) support." ON \
+		"+DENABLE_TOMAHAWK=ON" "Enable Tomahawk, the Hiawatha command shell." OFF \
+		"+DENABLE_TOOLKIT=ON"  "Enable the URL Toolkit." ON \
+		"+DENABLE_XSLT=ON"     "Enable XSLT support." ON \
+		3>&1 1>&2 2>&3)
+
+	if [ $? = 1 ]; then
+		exit
+	fi
+
+	declare -A settings=()
+	settings[CMAKE_INSTALL_PREFIX]="/usr/local"
+	settings[CMAKE_INSTALL_SBINDIR]="usr/sbin"
+	settings[CMAKE_INSTALL_SYSCONFDIR]="etc"
+	settings[CMAKE_INSTALL_LIBDIR]="usr/lib"
+	settings[CMAKE_INSTALL_MANDIR]="usr/share/man"
+	settings[LOG_DIR]=""
+	settings[PID_DIR]=""
+	settings[WEBROOT_DIR]=""
+	settings[WORK_DIR]=""
+
+	while [ "${setting}" != "COMPILE" ]; do
+		setting=$(whiptail \
+			--backtitle "Hiawatha v${version}" \
+			--title "Set compiler settings" \
+			--clear --notags \
+			--cancel-button "Exit" \
+			--menu "" 0 0 0 \
+			"CMAKE_INSTALL_PREFIX" "CMAKE_INSTALL_PREFIX = ${settings[CMAKE_INSTALL_PREFIX]}" \
+			"CMAKE_INSTALL_SBINDIR" "CMAKE_INSTALL_SBINDIR = ${settings[CMAKE_INSTALL_SBINDIR]}" \
+			"CMAKE_INSTALL_SYSCONFDIR" "CMAKE_INSTALL_SYSCONFDIR = ${settings[CMAKE_INSTALL_SYSCONFDIR]}" \
+			"CMAKE_INSTALL_LIBDIR" "CMAKE_INSTALL_LIBDIR = ${settings[CMAKE_INSTALL_LIBDIR]}" \
+			"CMAKE_INSTALL_MANDIR" "CMAKE_INSTALL_MANDIR = ${settings[CMAKE_INSTALL_MANDIR]}" \
+			"LOG_DIR" "LOG_DIR = ${settings[LOG_DIR]}" \
+			"PID_DIR" "PID_DIR = ${settings[PID_DIR]}" \
+			"WEBROOT_DIR" "WEBROOT_DIR = ${settings[WEBROOT_DIR]}" \
+			"WORK_DIR" "WORK_DIR = ${settings[WORK_DIR]}" \
+			""                          "" \
+			"COMPILE_HIAWATHA"          "Compile Hiawatha" \
+			3>&1 1>&2 2>&3)
+
+		if [ $? = 1 ]; then
+			exit
+		fi
+
+		if [ "${setting}" = "" ]; then 
+			continue;
+		fi
+
+		if [ "${setting}" = "COMPILE_HIAWATHA" ]; then 
+			break;
+		fi
+
+		value=$(whiptail \
+			--backtitle "Hiawatha v${version}" \
+			--title "Select compiler setting" \
+			--clear --notags \
+			--cancel-button "Exit" \
+			--inputbox "Set value of ${setting}" 0 50 ${settings[${setting}]} \
+			3>&1 1>&2 2>&3)
+
+		settings[${setting}]=${value}
+	done
+
+	params="-DENABLE_CACHE=off -DENABLE_RPROXY=off -DENABLE_SANDBOX=off -DENABLE_TLS=off -DENABLE_TOOLKIT=off -DENABLE_XSLT=off "
+	params+=`echo ${options} | tr '+"' '- '`
+
+	for setting in "${!settings[@]}"; do
+		if [ "${settings[${setting}]}" != "" ]; then
+			params+=-D${setting}=${settings[${setting}]}" "
+		elif [ "${setting}" = "CMAKE_INSTALL_PREFIX" ]; then
+			params+=-D${setting}='"" '
+		fi
+	done
+
+	rm -rf build
+	mkdir build
+	cd build && cmake .. ${params} && make
+
+	echo "The result of the compilation is in the build directory."
+}
+
+function make_debian_package {
+	./extra/make_debian_package
+}
+
+function make_macos_package {
+	./extra/make_macos_package
+}
+
+function make_redhat_package {
+	./extra/make_redhat_package
+}
+
+function make_windows_package {
+	./extra/make_windows_package
+}
+
+function main_menu {
+	choice=$(whiptail \
+		--backtitle "Hiawatha v${version}" \
+		--title "Compile method" \
+		--clear --notags \
+		--cancel-button "Exit" \
+		--menu "" 0 0 0 \
+		"C" "Custom compilation" \
+		"D" "Make Debian package" \
+		"M" "Make Mac OS package" \
+		"R" "Make Red Hat package" \
+		"W" "Make Windows (Cygwin) package" \
+		3>&1 1>&2 2>&3)
+
+	if [ $? = 1 ]; then
+		exit
+	fi
+
+	case ${choice} in
+		"C") custom_compile;;
+		"D") make_debian_package;;
+		"M") make_macos_package;;
+		"R") make_redhat_package;;
+		"W") make_windows_package;;
+	esac
+}
+
+main_menu

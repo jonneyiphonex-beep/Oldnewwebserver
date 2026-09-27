@@ -1,0 +1,68 @@
+#!/bin/sh
+
+mbedtls_disable() {
+	perl -pi -e "s/^#define ${1}$/\/\/#define ${1}/" include/mbedtls/mbedtls_config.h
+}
+
+crypto_enable() {
+	perl -pi -e "s/^\/\/#define ${1}$/#define ${1}/" tf-psa-crypto/include/psa/crypto_config.h
+}
+
+cd `dirname $0`
+
+if [ ! `which curl` ]; then
+	echo "Curl not found."
+	exit
+fi
+
+if [ "$1" = "" ]; then
+version=`curl -s https://raw.githubusercontent.com/ARMmbed/mbedtls/development/ChangeLog | grep "^=" | head -1 | cut -f4 -d' '`
+else
+version=$1
+fi
+
+echo "Downloading mbed TLS v${version}."
+curl -sOL https://github.com/Mbed-TLS/mbedtls/releases/download/mbedtls-${version}/mbedtls-${version}.tar.bz2
+tar -xjf mbedtls-${version}.tar.bz2
+rm -f mbedtls-${version}.tar.bz2
+
+if [ ! -d mbedtls-${version} ]; then
+	echo "mbed TLS v${version} not found."
+	exit
+fi
+
+echo "Installing new mbed TLS library."
+
+rm -rf mbedtls
+mv mbedtls-${version} mbedtls
+
+cd mbedtls
+rm -rf ChangeLog.d
+rm -rf docs
+rm -rf doxygen
+rm -rf tests
+rm -rf programs
+rm -rf scripts
+rm -rf framework/data_files
+rm -rf framework/scripts
+rm -rf framework/tests
+rm -rf tf-psa-crypto/tests
+rm -rf tf-psa-crypto/framework/data_files
+rm -rf tf-psa-crypto/framework/scripts
+rm -rf tf-psa-crypto/framework/tests
+rm -rf tf-psa-crypto/programs
+rm -rf tf-psa-crypto/scripts
+
+if [ -f ../mbedtls-${version}.patch ]; then
+	echo "Applying patch."
+	patch -p1 < ../mbedtls-${version}.patch
+fi
+
+echo "Configuring mbed TLS library."
+mbedtls_disable MBEDTLS_SSL_SESSION_TICKETS
+
+echo "Configuring crypto library."
+crypto_enable MBEDTLS_THREADING_PTHREAD
+crypto_enable MBEDTLS_THREADING_C
+
+echo "mbed TLS upgraded to version ${version}."

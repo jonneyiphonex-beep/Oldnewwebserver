@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="A focused control room for the Hiawatha webserver project.">
+  <title>Hiawatha | Lightweight by design</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="monitor-page">
+  <main class="monitor-shell" id="top">
+    <header class="monitor-header">
+      <div>
+        <p class="monitor-kicker">HIAWATHA / SYSTEM MONITOR</p>
+        <h1>Live metrics</h1>
+      </div>
+      <div class="connection-status"><span></span> CONNECTED</div>
+    </header>
+
+    <section class="metrics-grid" aria-label="System monitoring metrics">
+      <article class="metric-card" data-metric="ram">
+        <div class="metric-top"><span>RAM</span><span class="metric-icon">▥</span></div>
+        <strong class="metric-value">--%</strong>
+        <div class="metric-track"><i></i></div>
+        <small>MEMORY USAGE</small>
+      </article>
+      <article class="metric-card" data-metric="disk">
+        <div class="metric-top"><span>HARD DISK</span><span class="metric-icon">▤</span></div>
+        <strong class="metric-value">--%</strong>
+        <div class="metric-track"><i></i></div>
+        <small>STORAGE USAGE</small>
+      </article>
+      <article class="metric-card" data-metric="cpu">
+        <div class="metric-top"><span>CPU</span><span class="metric-icon">◈</span></div>
+        <strong class="metric-value">--%</strong>
+        <div class="metric-track"><i></i></div>
+        <small>PROCESSOR USAGE</small>
+      </article>
+      <article class="metric-card response-card" data-metric="latency">
+        <div class="metric-top"><span>RESPONSE TIME</span><span class="metric-icon">⌁</span></div>
+        <strong class="metric-value">-- ns</strong>
+        <div class="latency-line"><i></i></div>
+        <small>NANOSECONDS</small>
+      </article>
+      <article class="metric-card internet-card" data-metric="internet">
+        <div class="metric-top"><span>INTERNET SPEED</span><span class="metric-icon">⇄</span></div>
+        <strong class="metric-value">-- Mbps</strong>
+        <div class="metric-track"><i></i></div>
+        <small>NETWORK THROUGHPUT</small>
+      </article>
+      <article class="metric-card info-card" data-metric="architecture">
+        <div class="metric-top"><span>ARCHITECTURE</span><span class="metric-icon">◫</span></div>
+        <strong class="metric-value">--</strong>
+        <small>DEVICE BITNESS</small>
+      </article>
+      <article class="metric-card info-card" data-metric="os">
+        <div class="metric-top"><span>OPERATING SYSTEM</span><span class="metric-icon">▣</span></div>
+        <strong class="metric-value">--</strong>
+        <small>HOST OS</small>
+      </article>
+      <article class="metric-card file-card" data-metric="files">
+        <div class="metric-top"><span>FILE CHECK</span><span class="metric-icon">✓</span></div>
+        <strong class="metric-value">--</strong>
+        <small id="file-check-detail">CONTINUOUS SCAN</small>
+      </article>
+    </section>
+
+    <footer class="monitor-footer">
+      <span>LAST UPDATE <strong id="last-update">--:--:--</strong></span>
+      <span>AUTO REFRESH <strong>1 SEC</strong></span>
+    </footer>
+  </main>
+  <script src="script.js"></script>
+</body>
+</html>
